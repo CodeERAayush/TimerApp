@@ -90,7 +90,7 @@ This is a React Native app that allows users to create, manage, and interact wit
 │   │── /screens     # App screens (HomeScreen, HistoryScreen)
 │   │── /utils       # Helper functions (storage)
 │   │── /theme       # Theme Config (ThemeContext)
-│   │── /library       # Independent Pure Components (Typography)
+│   │── /library     # Independent Pure Components (Typography)
 │   │── App.js       # Main entry point
 │── package.json
 │── README.md        # Project documentation
