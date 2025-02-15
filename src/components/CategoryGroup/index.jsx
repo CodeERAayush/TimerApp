@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Timer from '../Timer';
-import { darkTheme } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
 
-const CategoryGroup = ({ 
-  category, 
-  timers, 
-  onTimerComplete, 
-  onTimerStatusChange 
+const CategoryGroup = ({
+  category,
+  timers,
+  onTimerComplete,
+  onTimerStatusChange
 }) => {
+  const { theme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(true);
   const [allTimersRunning, setAllTimersRunning] = useState(false);
 
@@ -18,59 +19,115 @@ const CategoryGroup = ({
   const toggleAllTimers = () => {
     const newStatus = !allTimersRunning;
     setAllTimersRunning(newStatus);
+    // Update all timers in the group
+    timers.forEach(timer => {
+      onTimerStatusChange(timer.id, newStatus);
+    });
   };
 
   const resetAllTimers = () => {
     setAllTimersRunning(false);
+    // Reset all timers in the group
+    timers.forEach(timer => {
+      onTimerStatusChange(timer.id, false);
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.titleContainer} 
+    <View style={[
+      styles.container,
+      {
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.borderRadius?.md || 8
+      }
+    ]}>
+      <View style={[
+        styles.header,
+        {
+          backgroundColor: theme.colors.surface,
+          padding: theme.spacing?.md || 16
+        }
+      ]}>
+        <TouchableOpacity
+          style={styles.titleContainer}
           onPress={toggleExpand}
         >
-          <Icon 
-            name={isExpanded ? 'chevron-down' : 'chevron-right'} 
-            size={24} 
-            color={darkTheme.colors.onSurface} 
+          <Icon
+            name={isExpanded ? 'chevron-down' : 'chevron-right'}
+            size={24}
+            color={theme.colors.onSurface}
           />
-          <Text style={styles.title}>{category}</Text>
-          <Text style={styles.count}>({timers.length})</Text>
+          <Text style={[
+            styles.title,
+            {
+              color: theme.colors.onSurface,
+              marginLeft: theme.spacing?.sm || 8,
+              ...theme.typography?.h2
+            }
+          ]}>
+            {category}
+          </Text>
+          <Text style={[
+            styles.count,
+            {
+              color: theme.colors.disabled,
+              marginLeft: theme.spacing?.sm || 8,
+              ...theme.typography?.body
+            }
+          ]}>
+            ({timers.length})
+          </Text>
         </TouchableOpacity>
-        
+
         <View style={styles.groupControls}>
-          <TouchableOpacity 
-            style={styles.groupButton} 
+          <TouchableOpacity
+            style={[
+              styles.groupButton,
+              {
+                padding: theme.spacing?.sm || 8,
+                marginLeft: theme.spacing?.sm || 8
+              }
+            ]}
             onPress={toggleAllTimers}
           >
-            <Icon 
-              name={allTimersRunning ? 'pause' : 'play'} 
-              size={20} 
-              color={darkTheme.colors.onSurface} 
+            <Icon
+              name={allTimersRunning ? 'pause' : 'play'}
+              size={20}
+              color={theme.colors.onSurface}
             />
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.groupButton} 
+
+          <TouchableOpacity
+            style={[
+              styles.groupButton,
+              {
+                padding: theme.spacing?.sm || 8,
+                marginLeft: theme.spacing?.sm || 8
+              }
+            ]}
             onPress={resetAllTimers}
           >
-            <Icon 
-              name="restart" 
-              size={20} 
-              color={darkTheme.colors.onSurface} 
+            <Icon
+              name="restart"
+              size={20}
+              color={theme.colors.onSurface}
             />
           </TouchableOpacity>
         </View>
       </View>
 
       {isExpanded && (
-        <View style={styles.timersList}>
+        <View style={[
+          styles.timersList,
+          {
+            padding: theme.spacing?.md || 16
+          }
+        ]}>
           {timers.map((timer) => (
-            <Timer 
+            <Timer
               key={timer.id}
               {...timer}
+              theme={theme}
               isRunning={allTimersRunning}
               onComplete={() => onTimerComplete(timer.id)}
               onStatusChange={(status) => onTimerStatusChange(timer.id, status)}
@@ -84,41 +141,33 @@ const CategoryGroup = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: darkTheme.colors.surface,
-    borderRadius: darkTheme.borderRadius.md,
-    marginVertical: darkTheme.spacing.sm,
+    marginVertical: 8,
     overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: darkTheme.spacing.md,
-    backgroundColor: darkTheme.colors.surface,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
-    ...darkTheme.typography.h2,
-    color: darkTheme.colors.onSurface,
-    marginLeft: darkTheme.spacing.sm,
+    fontWeight: '600',
   },
   count: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.disabled,
-    marginLeft: darkTheme.spacing.sm,
+    fontWeight: '400',
   },
   groupControls: {
     flexDirection: 'row',
   },
   groupButton: {
-    padding: darkTheme.spacing.sm,
-    marginLeft: darkTheme.spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   timersList: {
-    padding: darkTheme.spacing.md,
+    // padding: darkTheme.spacing.md,
   },
 });
 

@@ -8,10 +8,11 @@ import {
 } from 'react-native';
 import Typography from '../../library/Typography';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { darkTheme } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
 import { getHistory, exportData } from '../../utils/storage';
 
 const HistoryScreen = ({ navigation }) => {
+  const { theme } = useTheme();
   const [history, setHistory] = useState([]);
   const [filter, setFilter] = useState('all');
 
@@ -50,17 +51,21 @@ const HistoryScreen = ({ navigation }) => {
   };
 
   const renderHistoryItem = ({ item }) => (
-    <View style={styles.historyItem}>
+    <View style={[styles.historyItem, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.itemHeader}>
-        <Typography style={styles.itemName}>{item.name}</Typography>
-        <Typography style={styles.itemCategory}>{item.category}</Typography>
+        <Typography style={[styles.itemName, { color: theme.colors.onSurface }]}>
+          {item.name}
+        </Typography>
+        <Typography style={[styles.itemCategory, { color: theme.colors.primary }]}>
+          {item.category}
+        </Typography>
       </View>
       
       <View style={styles.itemDetails}>
-        <Typography style={styles.itemTime}>
+        <Typography style={[styles.itemTime, { color: theme.colors.onSurface }]}>
           Duration: {Math.floor(item.duration / 60)} minutes
         </Typography>
-        <Typography style={styles.itemDate}>
+        <Typography style={[styles.itemDate, { color: theme.colors.disabled }]}>
           {formatDate(item.completedAt)}
         </Typography>
       </View>
@@ -92,37 +97,43 @@ const HistoryScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-left" size={24} color={darkTheme.colors.onSurface} />
+          <Icon name="arrow-left" size={24} color={theme.colors.onSurface} />
         </TouchableOpacity>
-        <Typography style={styles.title}>History</Typography>
+        <Typography style={[styles.title, { color: theme.colors.onSurface }]}>
+          History
+        </Typography>
         <TouchableOpacity
           style={styles.exportButton}
           onPress={handleExport}
         >
-          <Icon name="export" size={24} color={darkTheme.colors.onSurface} />
+          <Icon name="export" size={24} color={theme.colors.onSurface} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { backgroundColor: theme.colors.surface }]}>
         {filterButtons.map(button => (
           <TouchableOpacity
             key={button.value}
             style={[
               styles.filterButton,
-              filter === button.value && styles.filterButtonActive
+              filter === button.value && [
+                styles.filterButtonActive,
+                { backgroundColor: theme.colors.primary }
+              ]
             ]}
             onPress={() => setFilter(button.value)}
           >
             <Typography
               style={[
-                styles.filterButtonTypography,
-                filter === button.value && styles.filterButtonTypographyActive
+                styles.filterButtonText,
+                { color: theme.colors.onSurface },
+                filter === button.value && { color: theme.colors.onPrimary }
               ]}
             >
               {button.label}
@@ -141,9 +152,11 @@ const HistoryScreen = ({ navigation }) => {
             <Icon
               name="timer-off"
               size={48}
-              color={darkTheme.colors.disabled}
+              color={theme.colors.disabled}
             />
-            <Typography style={styles.emptyTypography}>No completed timers yet</Typography>
+            <Typography style={[styles.emptyText, { color: theme.colors.disabled }]}>
+              No completed timers yet
+            </Typography>
           </View>
         }
       />
@@ -154,66 +167,61 @@ const HistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkTheme.colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: darkTheme.spacing.md,
-    backgroundColor: darkTheme.colors.surface,
+    padding: 16,
+  },
+  backButton: {
+    padding: 8,
   },
   title: {
-    ...darkTheme.typography.h1,
-    color: darkTheme.colors.onSurface,
+    fontSize: 24,
+    fontWeight: 'bold',
     flex: 1,
-    marginLeft: darkTheme.spacing.md,
+    marginLeft: 16,
   },
   exportButton: {
-    padding: darkTheme.spacing.sm,
+    padding: 8,
   },
   filterContainer: {
     flexDirection: 'row',
-    padding: darkTheme.spacing.md,
-    backgroundColor: darkTheme.colors.surface,
+    padding: 16,
   },
   filterButton: {
-    paddingVertical: darkTheme.spacing.sm,
-    paddingHorizontal: darkTheme.spacing.md,
-    borderRadius: darkTheme.borderRadius.round,
-    marginRight: darkTheme.spacing.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginRight: 8,
   },
   filterButtonActive: {
-    backgroundColor: darkTheme.colors.primary,
+    backgroundColor: '#007AFF',
   },
-  filterButtonTypography: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onSurface,
-  },
-  filterButtonTypographyActive: {
-    color: darkTheme.colors.onPrimary,
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   list: {
-    padding: darkTheme.spacing.md,
+    padding: 16,
   },
   historyItem: {
-    backgroundColor: darkTheme.colors.surface,
-    borderRadius: darkTheme.borderRadius.md,
-    padding: darkTheme.spacing.md,
-    marginBottom: darkTheme.spacing.md,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: darkTheme.spacing.sm,
+    marginBottom: 8,
   },
   itemName: {
-    ...darkTheme.typography.h2,
-    color: darkTheme.colors.onSurface,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   itemCategory: {
-    ...darkTheme.typography.caption,
-    color: darkTheme.colors.primary,
+    fontSize: 12,
   },
   itemDetails: {
     flexDirection: 'row',
@@ -221,23 +229,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemTime: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onSurface,
+    fontSize: 14,
   },
   itemDate: {
-    ...darkTheme.typography.caption,
-    color: darkTheme.colors.disabled,
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: darkTheme.spacing.xl,
+    padding: 32,
   },
-  emptyTypography: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.disabled,
-    marginTop: darkTheme.spacing.md,
+  emptyText: {
+    fontSize: 16,
+    marginTop: 16,
   },
 });
 

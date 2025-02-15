@@ -8,12 +8,13 @@ import {
   ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { darkTheme } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
 import Typography from '../../library/Typography';
 
 const DEFAULT_CATEGORIES = ['Workout', 'Study', 'Break', 'Meditation', 'Custom'];
 
-const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
+const CreateTimerForm = ({ visible, onClose, onSubmit, existingCategories = [] }) => {
+  const { theme } = useTheme();
   const [name, setName] = useState('');
   const [duration, setDuration] = useState('');
   const [category, setCategory] = useState('');
@@ -28,7 +29,10 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
       id: Date.now().toString(),
       name,
       duration: parseInt(duration) * 60, // Convert minutes to seconds
-      category: finalCategory || 'Uncategorized'
+      category: finalCategory || 'Uncategorized',
+      halfwayAlert: false,
+      isRunning: false,
+      progress: 0
     });
     setName('');
     setDuration('');
@@ -37,6 +41,9 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
     onClose();
   };
 
+  // Combine default and existing categories, removing duplicates
+  const allCategories = [...new Set([...DEFAULT_CATEGORIES, ...existingCategories])];
+
   return (
     <Modal
       visible={visible}
@@ -44,67 +51,97 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.formContainer}>
+      <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+        <View style={[styles.formContainer, { 
+          backgroundColor: theme.colors.background,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20
+        }]}>
           <View style={styles.header}>
-            <Typography style={styles.title}>Create New Timer</Typography>
+            <Typography style={[styles.title, { color: theme.colors.onBackground }]}>
+              Create New Timer
+            </Typography>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name="close" size={24} color={darkTheme.colors.onSurface} />
+              <Icon name="close" size={24} color={theme.colors.onSurface} />
             </TouchableOpacity>
           </View>
 
           <ScrollView>
             <View style={styles.inputGroup}>
-              <Typography style={styles.label}>Timer Name</Typography>
+              <Typography style={[styles.label, { color: theme.colors.onBackground }]}>
+                Timer Name
+              </Typography>
               <TextInput
-                style={styles.input}
+                style={[styles.input, {
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.onSurface,
+                  borderColor: theme.colors.border
+                }]}
                 value={name}
                 onChangeText={setName}
                 placeholder="Enter timer name"
-                placeholderTextColor={darkTheme.colors.disabled}
+                placeholderTextColor={theme.colors.disabled}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Typography style={styles.label}>Duration (minutes)</Typography>
+              <Typography style={[styles.label, { color: theme.colors.onBackground }]}>
+                Duration (minutes)
+              </Typography>
               <TextInput
-                style={styles.input}
+                style={[styles.input, {
+                  backgroundColor: theme.colors.surface,
+                  color: theme.colors.onSurface,
+                  borderColor: theme.colors.border
+                }]}
                 value={duration}
                 onChangeText={setDuration}
                 placeholder="Enter duration in minutes"
                 keyboardType="numeric"
-                placeholderTextColor={darkTheme.colors.disabled}
+                placeholderTextColor={theme.colors.disabled}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Typography style={styles.label}>Category</Typography>
+              <Typography style={[styles.label, { color: theme.colors.onBackground }]}>
+                Category
+              </Typography>
               <TouchableOpacity
-                style={styles.categorySelector}
+                style={[styles.categorySelector, {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border
+                }]}
                 onPress={() => setShowCategories(!showCategories)}
               >
-                <Typography style={styles.categoryText}>
+                <Typography style={[styles.categoryText, { color: theme.colors.onSurface }]}>
                   {category || 'Select category'}
                 </Typography>
                 <Icon
                   name={showCategories ? 'chevron-up' : 'chevron-down'}
                   size={24}
-                  color={darkTheme.colors.onSurface}
+                  color={theme.colors.onSurface}
                 />
               </TouchableOpacity>
 
               {showCategories && (
-                <View style={styles.categoriesList}>
-                  {DEFAULT_CATEGORIES.map((cat) => (
+                <View style={[styles.categoriesList, {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border
+                }]}>
+                  {allCategories.map((cat) => (
                     <TouchableOpacity
                       key={cat}
-                      style={styles.categoryOption}
+                      style={[styles.categoryOption, {
+                        borderBottomColor: theme.colors.border
+                      }]}
                       onPress={() => {
                         setCategory(cat);
                         setShowCategories(false);
                       }}
                     >
-                      <Typography style={styles.categoryOptionText}>{cat}</Typography>
+                      <Typography style={[styles.categoryOptionText, { color: theme.colors.onSurface }]}>
+                        {cat}
+                      </Typography>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -112,11 +149,16 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
 
               {category === 'Custom' && (
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, {
+                    backgroundColor: theme.colors.surface,
+                    color: theme.colors.onSurface,
+                    borderColor: theme.colors.border,
+                    marginTop: 8
+                  }]}
                   value={customCategory}
                   onChangeText={setCustomCategory}
                   placeholder="Enter custom category"
-                  placeholderTextColor={darkTheme.colors.disabled}
+                  placeholderTextColor={theme.colors.disabled}
                 />
               )}
             </View>
@@ -124,12 +166,15 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                (!name || !duration) && styles.submitButtonDisabled
+                { backgroundColor: theme.colors.primary },
+                (!name || !duration) && { backgroundColor: theme.colors.disabled }
               ]}
               onPress={handleSubmit}
               disabled={!name || !duration}
             >
-              <Typography style={styles.submitButtonText}>Create Timer</Typography>
+              <Typography style={[styles.submitButtonText, { color: theme.colors.onPrimary }]}>
+                Create Timer
+              </Typography>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -141,88 +186,68 @@ const CreateTimerForm = ({ visible, onClose, onSubmit }) => {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   formContainer: {
-    backgroundColor: darkTheme.colors.background,
-    borderTopLeftRadius: darkTheme.borderRadius.lg,
-    borderTopRightRadius: darkTheme.borderRadius.lg,
-    padding: darkTheme.spacing.lg,
+    padding: 16,
     maxHeight: '80%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: darkTheme.spacing.lg,
+    marginBottom: 16,
   },
   title: {
-    ...darkTheme.typography.h2,
-    color: darkTheme.colors.onBackground,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   closeButton: {
-    padding: darkTheme.spacing.sm,
+    padding: 8,
   },
   inputGroup: {
-    marginBottom: darkTheme.spacing.lg,
+    marginBottom: 16,
   },
   label: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onBackground,
-    marginBottom: darkTheme.spacing.sm,
+    fontSize: 16,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: darkTheme.colors.surface,
-    borderRadius: darkTheme.borderRadius.md,
-    padding: darkTheme.spacing.md,
-    color: darkTheme.colors.onSurface,
+    borderRadius: 8,
+    padding: 12,
     borderWidth: 1,
-    borderColor: darkTheme.colors.border,
   },
   categorySelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: darkTheme.colors.surface,
-    borderRadius: darkTheme.borderRadius.md,
-    padding: darkTheme.spacing.md,
+    borderRadius: 8,
+    padding: 12,
     borderWidth: 1,
-    borderColor: darkTheme.colors.border,
   },
   categoryText: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onSurface,
+    fontSize: 16,
   },
   categoriesList: {
-    backgroundColor: darkTheme.colors.surface,
-    borderRadius: darkTheme.borderRadius.md,
-    marginTop: darkTheme.spacing.sm,
+    borderRadius: 8,
+    marginTop: 8,
     borderWidth: 1,
-    borderColor: darkTheme.colors.border,
   },
   categoryOption: {
-    padding: darkTheme.spacing.md,
+    padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: darkTheme.colors.border,
   },
   categoryOptionText: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onSurface,
+    fontSize: 16,
   },
   submitButton: {
-    backgroundColor: darkTheme.colors.primary,
-    borderRadius: darkTheme.borderRadius.md,
-    padding: darkTheme.spacing.md,
+    borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
-    marginTop: darkTheme.spacing.md,
-  },
-  submitButtonDisabled: {
-    backgroundColor: darkTheme.colors.disabled,
+    marginTop: 16,
   },
   submitButtonText: {
-    ...darkTheme.typography.body,
-    color: darkTheme.colors.onPrimary,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
