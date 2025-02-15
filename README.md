@@ -84,7 +84,7 @@ This is a React Native app that allows users to create, manage, and interact wit
 
 ## Project Structure
 ```
-/multi-timer-app
+/TimerApp
 │── /src
 │   │── /components  # Reusable components (CategoryGroup, Timer, etc.)
 │   │── /screens     # App screens (HomeScreen, HistoryScreen)
